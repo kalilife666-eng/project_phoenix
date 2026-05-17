@@ -1,0 +1,42 @@
+name: ProjectPhoenix
+options:
+  bundleIdPrefix: com.projectphoenix
+settings:
+  base:
+    SWIFT_VERSION: 5.10
+    PRODUCT_NAME: Project Phoenix
+targets:
+  ProjectPhoenix:
+    type: application
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - ProjectPhoenix
+    info:
+      path: ProjectPhoenix/Info.plist
+      properties:
+        CFBundleDisplayName: Project Phoenix
+        UILaunchScreen: {}
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        NSLocalNetworkUsageDescription: Connect to your local Project Phoenix analysis server.
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+          NSExceptionDomains:
+            localhost:
+              NSExceptionAllowsInsecureHTTPLoads: true
+              NSIncludesSubdomains: true
+            "127.0.0.1":
+              NSExceptionAllowsInsecureHTTPLoads: true
+              NSIncludesSubdomains: true
+        UIFileSharingEnabled: false
+        LSSupportsOpeningDocumentsInPlace: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.projectphoenix.ios
+        GENERATE_INFOPLIST_FILE: false
+        CODE_SIGN_STYLE: Automatic
