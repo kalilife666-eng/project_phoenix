@@ -100,3 +100,9 @@ Publisher-provided access policy:
 
 ## License
 MIT
+
+### 🚀 Quick Launch (Linux)
+If you have added `~/.local/bin` to your PATH, you can launch the app from anywhere using:
+```bash
+gemini_phoenix
+```
