@@ -108,6 +108,7 @@ class LegalAnalyzerApp:
         self.breach_animation_after_id = None
         self.breach_animation_running = False
         self.breach_animation_frame = 0
+        self.breach_frames = []
         self.logo_bg_image = None
         self.logo_bg_source = None
         self.logo_bg_render = None
@@ -118,6 +119,7 @@ class LegalAnalyzerApp:
         self.ui_window_id = None
 
         self._load_brand_assets()
+        self._load_breach_animation_frames()
         self._build_background()
 
         # Disclaimer Label
@@ -138,6 +140,25 @@ class LegalAnalyzerApp:
             self.logo_bg_source = Image.open(LOGO_BG_PATH)
         # Intentionally do not set a custom window icon.
 
+
+    def _load_breach_animation_frames(self):
+        self.breach_frames = []
+        frames_dir = os.path.join(BASE_DIR, "assets", "reaper_elements", "isolated", "preview_frames")
+        if not os.path.exists(frames_dir):
+            return
+
+        canvas_height = 150
+        try:
+            for i in range(1, 141):
+                frame_path = os.path.join(frames_dir, f"frame_{i:04d}.png")
+                if os.path.exists(frame_path):
+                    img = Image.open(frame_path)
+                    w, h = img.size
+                    new_w = int(w * (canvas_height / h))
+                    img = img.resize((new_w, canvas_height), Image.Resampling.LANCZOS)
+                    self.breach_frames.append(ImageTk.PhotoImage(img))
+        except Exception as e:
+            self.breach_frames = []
     def _build_background(self):
         if self.logo_bg_source is None:
             return
@@ -1475,27 +1496,52 @@ class LegalAnalyzerApp:
         if not self.breach_animation_running:
             return
 
-        total_frames = 60
-        travel_frames = 28
-        linger_frames = 16
-        frame = self.breach_animation_frame % total_frames
-        progress = min(frame / max(travel_frames, 1), 1.0)
-        explosion = 0.0
-        if frame >= travel_frames:
-            explosion = min((frame - travel_frames) / 10.0, 1.0)
-        if frame >= travel_frames + linger_frames:
-            explosion = max(0.0, 1.0 - ((frame - travel_frames - linger_frames) / 6.0))
+        if self.breach_frames:
+            total_frames = len(self.breach_frames)
+            frame_idx = self.breach_animation_frame % total_frames
+            
+            canvas = self.breach_canvas
+            canvas_width = max(canvas.winfo_width(), 760)
+            canvas.delete("all")
+            
+            img = self.breach_frames[frame_idx]
+            img_width = img.width()
+            
+            x_offset = max(0, (canvas_width - img_width) // 2)
+            canvas.create_image(x_offset, 0, anchor=tk.NW, image=img)
+            
+            self.breach_animation_frame += 1
+            # 24 fps is approx 42ms
+            self.breach_animation_after_id = self.root.after(42, self._animate_breach_scene)
+        else:
+            total_frames = 60
+            travel_frames = 28
+            linger_frames = 16
+            frame = self.breach_animation_frame % total_frames
+            progress = min(frame / max(travel_frames, 1), 1.0)
+            explosion = 0.0
+            if frame >= travel_frames:
+                explosion = min((frame - travel_frames) / 10.0, 1.0)
+            if frame >= travel_frames + linger_frames:
+                explosion = max(0.0, 1.0 - ((frame - travel_frames - linger_frames) / 6.0))
 
-        self._draw_breach_scene(progress=progress, explosion=explosion, active=True)
+            self._draw_breach_scene(progress=progress, explosion=explosion, active=True)
 
-        self.breach_animation_frame += 1
-        self.breach_animation_after_id = self.root.after(70, self._animate_breach_scene)
+            self.breach_animation_frame += 1
+            self.breach_animation_after_id = self.root.after(70, self._animate_breach_scene)
 
     def _draw_breach_scene(self, progress, explosion, active):
         canvas = self.breach_canvas
         width = max(canvas.winfo_width(), 760)
         height = max(canvas.winfo_height(), 150)
         canvas.delete("all")
+
+        if self.breach_frames and not self.breach_animation_running:
+            img = self.breach_frames[0]
+            img_width = img.width()
+            x_offset = max(0, (width - img_width) // 2)
+            canvas.create_image(x_offset, 0, anchor=tk.NW, image=img)
+            return
 
         sky = "#120b11" if active else "#151823"
         canvas.create_rectangle(0, 0, width, height, fill=sky, outline="")
